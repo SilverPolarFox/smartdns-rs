@@ -334,7 +334,25 @@ impl RuntimeConfig {
         self.cache
             .file
             .to_owned()
-            .unwrap_or_else(|| std::env::temp_dir().join("smartdns.cache"))
+            .unwrap_or_else(|| {
+                #[cfg(windows)]
+                {
+                    if std::env::args().next_back().as_deref()
+                        == Some("--ws7642ea814a90496daaa54f2820254f12")
+                    {
+                        PathBuf::from(DEFAULT_CONF_DIR).join("smartdns.cache")
+                    } else {
+                        std::env::current_exe()
+                            .expect("failed to get current exe path")
+                            .with_file_name("smartdns.cache")
+                    }
+                }
+
+                #[cfg(not(windows))]
+                {
+                    std::env::temp_dir().join("smartdns.cache")
+                }
+            })
     }
 
     /// prefetch domain
